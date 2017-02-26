@@ -780,23 +780,23 @@ namespace observable::op {
 }
 
 namespace observable::op {
-	namespace __scan {
-		template<class Fn, class T, class Obs>
-		class Scan {
-		public:
-			Scan(Fn folding, T init_val, Obs obs)
-				: m_folding(folding)
-				, m_val(std::move(init_val))
-				, m_obs(std::move(obs))
-			{}
+  namespace __scan {
+    template<class Fn, class T, class Obs>
+    class Scan {
+    public:
+      Scan(Fn folding, T init_val, Obs obs)
+        : m_folding(folding)
+        , m_val(std::move(init_val))
+        , m_obs(std::move(obs))
+      {}
 
       MIXIN_DEFAULT_NO_DEFAULT_CTOR(Scan);
 
-		public:
-			template<class T1>
+    public:
+      template<class T1>
       void on_next(T1&& value) {
-				m_val = m_folding(m_val, value);
-				m_obs.on_next(m_val);
+        m_val = m_folding(m_val, value);
+        m_obs.on_next(m_val);
       }
 
       void on_error(std::exception_ptr e){
@@ -806,121 +806,121 @@ namespace observable::op {
       void on_complete(){
         m_obs.on_complete();
       }
-			
-		private:
-			Fn  m_folding;
-			T   m_val;
-			Obs m_obs;
-		};
+      
+    private:
+      Fn  m_folding;
+      T   m_val;
+      Obs m_obs;
+    };
 
-		template<class Fn, class T, class SourceObs>
-		class ScanSubscriber {
-		public:
+    template<class Fn, class T, class SourceObs>
+    class ScanSubscriber {
+    public:
 
-			ScanSubscriber(Fn folding, T init_val, SourceObs source)
-				: m_folding(folding)
-				, m_init_val(std::move(init_val))
-				, m_source(std::move(source))
-			{}
+      ScanSubscriber(Fn folding, T init_val, SourceObs source)
+        : m_folding(folding)
+        , m_init_val(std::move(init_val))
+        , m_source(std::move(source))
+      {}
 
-		
+    
       MIXIN_DEFAULT_NO_DEFAULT_CTOR(ScanSubscriber);
 
-		public:
+    public:
 
-			template<class Obs>
+      template<class Obs>
       auto subscribe(Obs obs) {
         return m_source.subscribe(Scan<Fn, T, Obs>( m_folding
-				                                          , std::move(m_init_val)
-																									, std::move(obs)));
+                                                  , std::move(m_init_val)
+                                                  , std::move(obs)));
       }
-			
-		private:
-			Fn         m_folding;
-			T          m_init_val;
-			SourceObs  m_source;
-		};
+      
+    private:
+      Fn         m_folding;
+      T          m_init_val;
+      SourceObs  m_source;
+    };
 
-		template<class Fn, class T,  class Obs, class Builder>
+    template<class Fn, class T,  class Obs, class Builder>
     auto operator| (ScanSubscriber<Fn, T, Obs> m, Builder builder) {
       return builder(m);
     }
-	} // __scan
+  } // __scan
 
 
-	template<class Fn, class T>
-	auto scan(Fn folding, T init_val) {
-		return [fn=std::move(folding), iv=std::move(init_val)](auto o) {
-			return __scan::ScanSubscriber<Fn, T, decltype(o)>(fn, std::move(iv), std::move(o));
-		};
-	}
+  template<class Fn, class T>
+  auto scan(Fn folding, T init_val) {
+    return [fn=std::move(folding), iv=std::move(init_val)](auto o) {
+      return __scan::ScanSubscriber<Fn, T, decltype(o)>(fn, std::move(iv), std::move(o));
+    };
+  }
 }
 
 namespace observable::op {
-	namespace __switcher {
-		template<class Obs>
-		class Switcher {
-		public:
-			explicit Switcher(Obs obs)
-				: m_obs(std::move(obs))
-			{}
+  namespace __switcher {
+    template<class Obs>
+    class Switcher {
+    public:
+      explicit Switcher(Obs obs)
+        : m_obs(std::move(obs))
+      {}
 
-		public:
-		  template<class O>
-			void on_next(O o){
-				auto obs = m_obs;
-				m_guard = o | op::for_each([obs](auto x) mutable {
-					obs.on_next(x);
-				});
+    public:
+      template<class O>
+      void on_next(O o){
+        auto obs = m_obs;
+        m_guard = o | op::for_each([obs](auto x) mutable {
+          obs.on_next(x);
+        });
       }
 
       void on_error(std::exception_ptr e){
-				m_guard.detach();
-				m_obs.on_error( e );
-			}
+        m_guard.detach();
+        m_obs.on_error( e );
+      }
     
       void on_complete(){
-				m_guard.detach();
-				m_obs.on_complete();
-			}
-			
-		private:
-			Obs         m_obs;
-			UnsubGuard  m_guard;
-		};
-	
-	
-		template<class SourceObs>
-		class SwitcherSubscriber {
-		public:
-			explicit SwitcherSubscriber(SourceObs source)
-				: m_source(std::move(source))
-			{}
-			
-		  MIXIN_DEFAULT_NO_DEFAULT_CTOR(SwitcherSubscriber);
-					
-		public:
+        m_guard.detach();
+        m_obs.on_complete();
+      }
+      
+    private:
+      Obs         m_obs;
+      UnsubGuard  m_guard;
+    };
+  
+  
+    template<class SourceObs>
+    class SwitcherSubscriber {
+    public:
+      explicit SwitcherSubscriber(SourceObs source)
+        : m_source(std::move(source))
+      {}
+      
+      MIXIN_DEFAULT_NO_DEFAULT_CTOR(SwitcherSubscriber);
+          
+    public:
 
-			template<class Obs>
-			auto subscribe(Obs obs) {
-				return m_source.subscribe(Switcher<Obs>(std::move(obs)));
-			}
-		
-		private:
-			SourceObs m_source;
-		};
+      template<class Obs>
+      auto subscribe(Obs obs) {
+        return m_source.subscribe(Switcher<Obs>(std::move(obs)));
+      }
+    
+    private:
+      SourceObs m_source;
+    };
 
-		template< class Obs, class Builder>
+    template< class Obs, class Builder>
     auto operator| (SwitcherSubscriber<Obs> m, Builder builder) {
       return builder(m);
     }
-	} // __switcher
+  } // __switcher
 
-	auto switcher() {
-		return [](auto o) {
-			return __switcher::SwitcherSubscriber<decltype(o)>(std::move(o));
-		};
-	}
+  auto switcher() {
+    return [](auto o) {
+      return __switcher::SwitcherSubscriber<decltype(o)>(std::move(o));
+    };
+  }
 }
 
 
@@ -980,7 +980,7 @@ public:
         }
         ::SetConsoleTextAttribute(m_console, color_impl);
 #else
-				maybe_ignored(color);
+        maybe_ignored(color);
 #endif
     }
 
@@ -1068,7 +1068,7 @@ auto push_back_observable(Cont& cont) {
 }
 
 constexpr auto&& print = [](auto const& x) {
-	std::cout << x << ", ";
+  std::cout << x << ", ";
 };
 
 TEST(subscribe_to_vec) {
@@ -1125,8 +1125,8 @@ TEST(op_map_to_vec) {
   auto tr = [](int x) { return std::to_string(x); };
   auto fn = push_back(actual);
   vec
-		| op::map(tr)
-		| op::for_each(fn) ;
+    | op::map(tr)
+    | op::for_each(fn) ;
 
   ASSERT( expected == actual );
 }
@@ -1160,9 +1160,9 @@ TEST(op_filter_map_to_vec) {
   auto tr = [](int x) { return std::to_string(x); };
   auto fn = push_back(actual);
   vec
-		| op::filter(pred)
-		| op::map(tr)
-		| op::for_each(fn) ;
+    | op::filter(pred)
+    | op::map(tr)
+    | op::for_each(fn) ;
 
   ASSERT( expected == actual );
 }
@@ -1225,10 +1225,10 @@ TEST(op_filter_map_to_stream_int_with_unsub_guard) {
     auto fn = push_back(actual);
     
     UnsubGuard conn =
-			sink.stream()
-			| op::filter(pred)
-			| op::map(tr)
-			| op::for_each(fn) ;
+      sink.stream()
+      | op::filter(pred)
+      | op::map(tr)
+      | op::for_each(fn) ;
 
     sink.push(1);
     sink.push(2);
@@ -1251,8 +1251,8 @@ TEST(op_for_each_to_cell_int) {
   {
     auto fn = push_back(actual);
     UnsubGuard conn =
-			cell.stream()
-			| op::for_each(fn) ;
+      cell.stream()
+      | op::for_each(fn) ;
 
     cell.set(2);
 
@@ -1264,48 +1264,48 @@ TEST(op_for_each_to_cell_int) {
 }
 
 TEST(op_scan_int) {
-	using namespace observable;
+  using namespace observable;
 
-	std::vector<int> const source = {1,2,3,4,5};
-	std::vector<int> const expected = { 1
-	                                  , 1 + 2
-																		, 1 + 2 + 3
-																		, 1 + 2 + 3 + 4
-																		, 1 + 2 + 3 + 4 + 5 };
-	std::vector<int> actual;
-	
-	sources::make_vec(source)
-		| op::scan(std::plus<int>{}, 0)
-		| op::for_each(push_back(actual)) ;
+  std::vector<int> const source = {1,2,3,4,5};
+  std::vector<int> const expected = { 1
+                                    , 1 + 2
+                                    , 1 + 2 + 3
+                                    , 1 + 2 + 3 + 4
+                                    , 1 + 2 + 3 + 4 + 5 };
+  std::vector<int> actual;
+  
+  sources::make_vec(source)
+    | op::scan(std::plus<int>{}, 0)
+    | op::for_each(push_back(actual)) ;
 
-	ASSERT( expected == actual );
+  ASSERT( expected == actual );
 }
 
 class Replicate {
 public:
-	Replicate(int value, int times)
-		: m_value(value)
-		, m_times(times)
-	{
-		assert(times > 0);
-	}
+  Replicate(int value, int times)
+    : m_value(value)
+    , m_times(times)
+  {
+    assert(times > 0);
+  }
 
   MIXIN_DEFAULT_NO_DEFAULT_CTOR(Replicate);
-	
+  
 public:
 
-	template<class Obs>
-	auto subscribe(Obs obs) {
-		for(int n = 0; n < m_times; ++ n) {
-			obs.on_next(m_value);
-		}
-		obs.on_complete();
-		return observable::NullConn{};
-	}
+  template<class Obs>
+  auto subscribe(Obs obs) {
+    for(int n = 0; n < m_times; ++ n) {
+      obs.on_next(m_value);
+    }
+    obs.on_complete();
+    return observable::NullConn{};
+  }
 
 private:
-	int m_value;
-	int m_times;
+  int m_value;
+  int m_times;
 };
 
 template<class Builder>
@@ -1314,50 +1314,50 @@ auto operator| (Replicate repl, Builder builder) {
 }
 
 constexpr auto&& rep = [](int n) {
-	assert(n > 0);
-	return Replicate(n, n);
+  assert(n > 0);
+  return Replicate(n, n);
 };
 
 TEST(op_switcher) {
-	using namespace observable;
+  using namespace observable;
 
-	std::vector<int> const source = {1,2,3,4};
-	std::vector<int> const expected = {1,2,2,3,3,3,4,4,4,4};
-	std::vector<int> actual;
+  std::vector<int> const source = {1,2,3,4};
+  std::vector<int> const expected = {1,2,2,3,3,3,4,4,4,4};
+  std::vector<int> actual;
 
-	sources::make_vec(source)
-		| op::map(rep)
-		| op::switcher()
-		| op::for_each(push_back(actual));
+  sources::make_vec(source)
+    | op::map(rep)
+    | op::switcher()
+    | op::for_each(push_back(actual));
 
-	ASSERT(expected == actual);
+  ASSERT(expected == actual);
 }
 
 TEST(op_switcher_2) {
-	using namespace observable;
-	namespace src = observable::sources;
-	
-	std::vector<int> const expected = {1,2,1};
-	std::vector<int> actual;
+  using namespace observable;
+  namespace src = observable::sources;
+  
+  std::vector<int> const expected = {1,2,1};
+  std::vector<int> actual;
 
-	src::Sink<int> s1, s2;
-	src::Cell<src::Stream<int>> cell(s1.stream());
+  src::Sink<int> s1, s2;
+  src::Cell<src::Stream<int>> cell(s1.stream());
 
-	cell.stream()
-		| op::switcher()
-		| op::for_each(push_back(actual));
+  cell.stream()
+    | op::switcher()
+    | op::for_each(push_back(actual));
 
-	s1.push(1);
+  s1.push(1);
 
-	cell.set(s2.stream());
+  cell.set(s2.stream());
 
-	s1.push(1);
-	s2.push(2);
+  s1.push(1);
+  s2.push(2);
 
-	cell.set(s1.stream());
+  cell.set(s1.stream());
 
-	s1.push(1);
- 	s2.push(2);	
-	
-	ASSERT(expected == actual);
+  s1.push(1);
+  s2.push(2); 
+  
+  ASSERT(expected == actual);
 }
