@@ -1,3 +1,4 @@
+#include <cassert>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -6,9 +7,8 @@
 #include <map>
 #include <cctype>
 
-
-#include <boost/optional.hpp>
-#include <boost/variant.hpp>
+#include <optional>
+#include <variant>
 
 
 template<class It, class Sent>
@@ -83,12 +83,12 @@ namespace json {
   //
   //
   struct value {
-    boost::variant< object
-                  , null
-                  , boolean
-                  , number
-                  , string
-                  , array     > val;
+    std::variant< object
+                 , null
+                 , boolean
+                 , number
+                 , string
+                 , array     > val;
   };
 
   //
@@ -157,7 +157,7 @@ namespace json {
   
   template<class It, class S>
   // require Forward_iterator<It>() && Sentinel<It, S>()
-  boost::optional<value> parse_value(It& it, S sent);
+  std::optional<value> parse_value(It& it, S sent);
   
   namespace __parse {
     /*
@@ -220,7 +220,7 @@ namespace json {
     
     // parsers
     template<class It, class Sent>
-    boost::optional<number> parse_number(It& it, Sent sent) {
+    std::optional<number> parse_number(It& it, Sent sent) {
       assert( it != sent );
       assert( std::isdigit(*it) || '-' == *it );
       
@@ -264,7 +264,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    boost::optional<string> parse_string(It& it, Sent sent) {
+    std::optional<string> parse_string(It& it, Sent sent) {
       assert( it != sent );
       assert( *it == '"' );
 
@@ -290,7 +290,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    boost::optional<null> parse_null(It& it, Sent sent) {
+    std::optional<null> parse_null(It& it, Sent sent) {
       assert( it != sent );
       assert( *it == 'n' );
       
@@ -305,7 +305,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    boost::optional<boolean> parse_boolean(It& it, Sent sent) {
+    std::optional<boolean> parse_boolean(It& it, Sent sent) {
       assert( it != sent );
       assert( *it == 't' || *it == 'f' );
       
@@ -330,12 +330,13 @@ namespace json {
     }
    
     template<class It, class Sent>
-    boost::optional<std::pair<std::string, value>> parse_member(It& it, Sent sent) {
+    std::optional<std::pair<std::string, value>> parse_member(It& it, Sent sent) {
       assert( it != sent );
 
       auto it1 = it;
 
       // key
+      skip_whitespaces(it1, sent);
       auto key = parse_string(it1, sent);
       if(!key) return {};
 
@@ -354,7 +355,7 @@ namespace json {
     }
     
     template<class It, class Sent>
-    boost::optional<object> parse_object(It& it, Sent sent) {  
+    std::optional<object> parse_object(It& it, Sent sent) {  
       assert( it != sent );
       assert( *it == '{' );
 
@@ -397,7 +398,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    boost::optional<array> parse_array(It& it, Sent sent) {
+    std::optional<array> parse_array(It& it, Sent sent) {
       assert( it != sent );
       assert( *it == '[' );
       
@@ -444,11 +445,11 @@ namespace json {
   
   template<class It, class S>
   // require Forward_iterator<It>() && Sentinel<It, S>()
-  boost::optional<value> parse_value(It& it, S sent) {    
+  std::optional<value> parse_value(It& it, S sent) {    
     __parse::skip_whitespaces(it, sent);
     if(it == sent) return {};
 
-    boost::optional<value> val;
+    std::optional<value> val;
 
     char const c = *it;
     if( c == '{') {
@@ -485,7 +486,7 @@ namespace json {
   //
   std::ostream& write_to_ostream(std::ostream& sout, value const& val);
   
-  struct ostream_writer_visitor: public boost::static_visitor<> {
+  struct ostream_writer_visitor {
     
     explicit ostream_writer_visitor(std::ostream& out)
       : m_out(out)
@@ -531,7 +532,7 @@ namespace json {
   
 
   std::ostream& write_to_ostream(std::ostream& sout, value const& val) {
-    boost::apply_visitor(ostream_writer_visitor(sout), val.val);
+    std::visit(ostream_writer_visitor(sout), val.val);
     return sout;
   }
 
@@ -541,44 +542,56 @@ namespace json {
 //
 // test
 //
-boost::optional<std::string> get_file_contents(char const* filename){
-  boost::optional<std::string> contents;
-  try {
-    std::fstream fin(filename, std::ios::in);
-    std::string contents_str;
-    contents_str.assign( std::istream_iterator<char>(fin)
-                       , std::istream_iterator<char>() );
-    contents = std::move(contents_str);
-  }
-  catch(std::exception const& e) {
-    std::cerr << e.what() << "\n";
-  }
-  return contents;
-}
 
 std::ostream& operator<< (std::ostream& out, json::value const& val) {
   return json::write_to_ostream(out, val);
 }
 
+ 
 int main() {
-  auto const example = get_file_contents("example.json");
+  // data
+  std::string const example = R"+++({
+	"number": 1234,
+	"string": "hello",
+	"array": [null, true, false, 42, "hello"],
+	"object": {
+		"one": 1,
+		"two": 2,
+		"three": 3
+	}
+  })+++";
 
-  if(!example) {
-    return 0;
-  }
+  auto const expected_value = []{
+    json::array arr{ {
+        json::value{ json::null{} },
+        json::value{ json::boolean{true} },
+        json::value{ json::boolean{false} },
+        json::value{ json::number{"42"} },
+        json::value{ json::string{"hello"} },
+    } };
+      
+    json::object sub_obj;
+    sub_obj.members["one"] = json::value{json::number{"1"}};
+    sub_obj.members["two"] = json::value{json::number{"2"}};
+    sub_obj.members["three"] = json::value{json::number{"3"}};
+      
+    json::object object;
+    object.members["number"] = json::value { json::number{"1234"} };
+    object.members["string"] = json::value { json::string{"hello"} };
+    object.members["array"]  = json::value { std::move(arr) };
+    object.members["object"] = json::value { std::move(sub_obj) };
+        
+    return json::value{std::move(object)};
+  }();
 
   // short for : it - iterator, sent - sentinel
-  auto       it   = example->begin();
-  auto const sent = example->end();
+  auto       it   = example.begin();
+  auto const sent = example.end();
   
-  auto opt_json = json::parse_value(it, sent);
-
-  if(opt_json) {
-    std::cout << "result: " << *opt_json << "\n";
-  }
-  std::cout << "unconsumed input (up to 20 chars): '"
-            << debug_str(20, it, sent)
-            << "'\n";
+  auto actual_value = json::parse_value(it, sent);
+   
+  assert( actual_value && expected_value == *actual_value );
+  assert( std::distance(it, sent) == 0 );
  
   return 0;
 }
