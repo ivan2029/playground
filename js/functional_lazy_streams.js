@@ -285,3 +285,85 @@ fp.chain( fp.filterC( x => 0 !== x%2 )
         , fp.eachC(LOG)
   )([1,2,3,4,5,6]);
 
+
+//
+// /* a simpler implementation */
+//
+var fp2 = (() => {
+    'use strict'
+    
+    const exports = {}
+    //
+    // sources
+    //
+
+    exports.stepper = function* (start, step, end) {
+      for(let x = start; x < end; x = x + step) {
+        yield x
+      }
+    }
+
+    //
+    // transforms
+    //
+    exports.map = transform => function* (iterable) {
+      for(let x of iterable) {
+        yield transform(x)
+      }
+    }
+
+    exports.filter = predicate => function* (iterable) {
+      for(let x of iterable) {
+        if(predicate(x)){
+          yield x
+        }
+      }
+    }
+
+    //
+    // terminators
+    //
+    exports.fold = (folding, init) => iterable => {
+      let acc = init
+      for(let x of iterable) {
+        acc = folding(acc, x)
+      }
+      return acc
+    }
+
+    exports.collect = exports.fold((acc, val) => { acc.push(val); return acc}, [])
+
+    //
+    // functional
+    //
+    exports.pipe = function () {
+      let fns = Array.prototype.slice.call(arguments, 0, arguments.length)
+      return function* (iterable) {
+        let wr = exports.fold( (acc, val) => val(acc), iterable )(fns)
+        for(let x of wr) {
+          yield x
+        }
+      }
+    } 
+
+    exports.compose = function() {
+      let fns = Array.prototype.slice.call(arguments, 0, arguments.length).reverse()
+      return exports.pipe.apply(null, fns)
+    }
+    
+    //
+    //
+    //
+    return exports
+})()
+
+
+//
+//
+//
+const tr1 = fp2.pipe( fp2.filter(x => x%2 === 0), fp2.map(x => `<<< ${x} >>>`)  )
+
+EXPECT( 'fp2'
+      , ['<<< 2 >>>', '<<< 4 >>>', '<<< 6 >>>', '<<< 8 >>>']
+      , fp2.collect(tr1(fp2.stepper(1,1,10)))
+);
