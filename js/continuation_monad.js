@@ -1,9 +1,7 @@
 'use strict'
 
-const monad = {}
-
 // :: (a -> Cont r b) -> (b -> Cont r c) -> (a -> Cont r c)
-monad.kleisli = (f, g) => x => f(x).bind(g)
+kleisli = (f, g) => x => f(x).bind(g)
 
 //
 // Cont r a = (a -> r) -> r
@@ -29,18 +27,21 @@ Cont.wrap = x => new Cont(cb => cb(x))
 //
 // test
 // 
-const delay = x => new Cont(cb => setTimeout(() => cb(x), 2000))
 const enclose = (l,r) => x => new Cont(cb => cb(`${l}${x}${r}`))
 const paren = enclose('(',')')
 const add = (a, b) => new Cont(cb => cb(a + b))
 const mul = (a, b) => new Cont(cb => cb(a*b))
 
-delay(42).run(console.log)
 add(2, 3).run(console.log)
 add(2, 3).fmap( x => `<<<${x}>>>`).run(console.log)
 add(2, 3).bind(paren).run(console.log)
-add(2, 3).bind(monad.kleisli(paren, paren)).run(console.log)
-add(2, 3).bind(delay).bind(monad.kleisli(enclose('<','>'), enclose('~', '~'))).run(console.log)
+add(2, 3).bind(kleisli(paren, paren)).run(console.log)
+
+// async - not really what Cont should be used for...
+const delay = x => new Cont(cb => setTimeout(() => cb(x), 2000))
+
+delay(42).run(console.log)
+add(2, 3).bind(delay).bind(kleisli(enclose('<','>'), enclose('~', '~'))).run(console.log)
 
 
 /** Old version
