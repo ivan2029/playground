@@ -6,13 +6,12 @@
 #include <vector>
 #include <map>
 #include <cctype>
-
 #include <optional>
 #include <variant>
 
 
 template<class It, class Sent>
-std::string debug_str(long long const max, It it, Sent sent) {
+auto debug_str(long long const max, It it, Sent sent) -> std::string {
   if(std::distance(it, sent) > max) {
     return std::string(it, it + max) + "...";
   }
@@ -24,10 +23,12 @@ std::string debug_str(long long const max, It it, Sent sent) {
 template<class It, class Sent, class We>
 // requires InputIterator<It>() && Sentinel<It, Sent>
 //       && Callable< We >
-std::ostream& write_sequence( std::ostream& out
-                            , char const* lpar, char const* rpar, char const* sep
-                            , It it, Sent sent
-                            , We write_element ) {
+auto write_sequence( std::ostream& out
+                   , char const* lpar, char const* rpar, char const* sep
+                   , It it, Sent sent
+                   , We write_element 
+                   ) -> std::ostream& 
+{
   out << lpar;
            
   if(it != sent) {
@@ -157,7 +158,7 @@ namespace json {
   
   template<class It, class S>
   // require Forward_iterator<It>() && Sentinel<It, S>()
-  std::optional<value> parse_value(It& it, S sent);
+  auto parse_value(It& it, S sent) -> std::optional<value>;
   
   namespace __parse {
     /*
@@ -185,7 +186,7 @@ namespace json {
 
     // helper parsers
     template<class It, class Sent>
-    int skip_whitespaces(It& it, Sent sent) {
+    auto skip_whitespaces(It& it, Sent sent) -> int {
       int skipped = 0;
       for(; it != sent && std::isspace(*it); ++ it){
         ++skipped;
@@ -194,7 +195,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    int skip_digits(It& it, Sent sent) {
+    auto skip_digits(It& it, Sent sent) -> int {
       int skipped = 0;
       for(; it != sent && std::isdigit(*it); ++it){
         ++skipped;
@@ -203,7 +204,7 @@ namespace json {
     }
 
     template<class LitIt, class LitSent, class It, class Sent>
-    void skip_literal(LitIt lit_it, LitSent lit_sent, It& it, Sent sent) {
+    auto skip_literal(LitIt lit_it, LitSent lit_sent, It& it, Sent sent) -> void {
       auto it1 = it;
       for(; lit_it != lit_sent && it1 != sent && *lit_it == *it1; ++ lit_it, ++it1){
       }
@@ -213,14 +214,14 @@ namespace json {
     }
 
     template<class It, class Sent>
-    void skip_literal_p(char const* lit, std::size_t n, It& it, Sent sent) {
+    auto skip_literal_p(char const* lit, std::size_t n, It& it, Sent sent) -> void {
       skip_literal(lit, lit + n, it, sent);
     }
 
     
     // parsers
     template<class It, class Sent>
-    std::optional<number> parse_number(It& it, Sent sent) {
+    auto parse_number(It& it, Sent sent) -> std::optional<number> {
       assert( it != sent );
       assert( std::isdigit(*it) || '-' == *it );
       
@@ -264,7 +265,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    std::optional<string> parse_string(It& it, Sent sent) {
+    auto parse_string(It& it, Sent sent) -> std::optional<string> {
       assert( it != sent );
       assert( *it == '"' );
 
@@ -290,7 +291,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    std::optional<null> parse_null(It& it, Sent sent) {
+    auto parse_null(It& it, Sent sent) -> std::optional<null> {
       assert( it != sent );
       assert( *it == 'n' );
       
@@ -305,7 +306,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    std::optional<boolean> parse_boolean(It& it, Sent sent) {
+    auto parse_boolean(It& it, Sent sent) -> std::optional<boolean> {
       assert( it != sent );
       assert( *it == 't' || *it == 'f' );
       
@@ -330,7 +331,7 @@ namespace json {
     }
    
     template<class It, class Sent>
-    std::optional<std::pair<std::string, value>> parse_member(It& it, Sent sent) {
+    auto parse_member(It& it, Sent sent) -> std::optional<std::pair<std::string, value>> {
       assert( it != sent );
 
       auto it1 = it;
@@ -355,7 +356,7 @@ namespace json {
     }
     
     template<class It, class Sent>
-    std::optional<object> parse_object(It& it, Sent sent) {  
+    auto parse_object(It& it, Sent sent) -> std::optional<object> {  
       assert( it != sent );
       assert( *it == '{' );
 
@@ -398,7 +399,7 @@ namespace json {
     }
 
     template<class It, class Sent>
-    std::optional<array> parse_array(It& it, Sent sent) {
+    auto parse_array(It& it, Sent sent) -> std::optional<array> {
       assert( it != sent );
       assert( *it == '[' );
       
@@ -445,7 +446,7 @@ namespace json {
   
   template<class It, class S>
   // require Forward_iterator<It>() && Sentinel<It, S>()
-  std::optional<value> parse_value(It& it, S sent) {    
+  auto parse_value(It& it, S sent) -> std::optional<value> {    
     __parse::skip_whitespaces(it, sent);
     if(it == sent) return {};
 
@@ -484,7 +485,7 @@ namespace json {
   //
   //
   //
-  std::ostream& write_to_ostream(std::ostream& sout, value const& val);
+  auto write_to_ostream(std::ostream& sout, value const& val) -> std::ostream& ;
   
   struct ostream_writer_visitor {
     
@@ -493,23 +494,23 @@ namespace json {
     {}
 
     // visits
-    void operator()( null const ) const {
+    auto operator() ( null const ) const -> void {
       m_out << "null";
     }
 
-    void operator()( boolean const b) const {
+    auto operator() ( boolean const b) const -> void {
       m_out << (b.val ? "true" : "false");
     }
 
-    void operator()( string const& str ) const {
+    auto operator() ( string const& str ) const -> void {
       m_out << '"' << str.val << '"';
     }
 
-    void operator()( number const& num ) const {
+    auto operator() ( number const& num ) const -> void {
       m_out << num.val;
     }
 
-    void operator()( object const& val) const {
+    auto operator() ( object const& val) const -> void {
       write_sequence( m_out
                     , "{", "}", ", "
                     , val.members.begin(), val.members.end()
@@ -519,7 +520,7 @@ namespace json {
                       });
     }
 
-    void operator()( array const& val) const {
+    auto operator() ( array const& val) const -> void {
       write_sequence( m_out
                     , "[", "]", ", "
                     , val.elements.begin(), val.elements.end()
@@ -531,7 +532,7 @@ namespace json {
   };
   
 
-  std::ostream& write_to_ostream(std::ostream& sout, value const& val) {
+  auto write_to_ostream(std::ostream& sout, value const& val) -> std::ostream&  {
     std::visit(ostream_writer_visitor(sout), val.val);
     return sout;
   }
@@ -543,12 +544,12 @@ namespace json {
 // test
 //
 
-std::ostream& operator<< (std::ostream& out, json::value const& val) {
+auto operator<< (std::ostream& out, json::value const& val) -> std::ostream& {
   return json::write_to_ostream(out, val);
 }
 
  
-int main() {
+auto main() -> int {
   // data
   std::string const example = R"+++({
 	"number": 1234,
