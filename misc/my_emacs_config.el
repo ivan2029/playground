@@ -63,3 +63,24 @@
 
 ;; org-mode settings
 (setq org-src-fontify-natively t)
+
+;; recompile on f7
+;; this assumes Makefile is in parent directory to where source files are located (see my 'generic' Makefile for details)
+(setq compile-command "make -C ..")
+(define-key global-map [f7] 'recompile)
+
+;; my c++-mode options (taken from stlab.cc/legacy/emacs-questions.html)
+(defun my-c-mode-common-hook ()
+  (setq tab-width 2)
+  ;; don't treat _ as word delimiter
+  (modify-syntax-entry ?_ "w")
+  ;; this will make sure spaces are used instead of tabs
+  (setq indent-tabs-mode t)
+  ;; we don't like auto-newline and hungry-delete
+  (c-toggle-auto-hungry-state -1)
+  (c-toggle-auto-state -1)
+  (setq c-basic-offset 2)
+	(setq c-syntactic-indentation nil)
+  )
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
