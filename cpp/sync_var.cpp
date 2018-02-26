@@ -2,6 +2,10 @@
 #include <condition_variable>
 #include <optional>
 
+/*
+    TODO: what about exceptions?
+*/
+
 template<class T>
 // requires Semiregular<T>
 class SyncVar {
@@ -16,21 +20,21 @@ public:
 
 public:
     //
-    auto put(T const& value) -> void {
+    auto put(T const& value) noexcept -> void {
         std::unique_lock<std::mutex> lock{m_mutex};
         m_get_cv.wait(lock, [&]{ return !static_cast<bool>(m_data); });
         m_data = value;
         m_put_cv.notify_one();
     }
   
-    auto put(T&& value) -> void {
+    auto put(T&& value) noexcept -> void {
         std::unique_lock<std::mutex> lock{m_mutex};
         m_get_cv.wait(lock, [&]{ return !static_cast<bool>(m_data); });
         m_data = std::move(value);
         m_put_cv.notify_one();
     }
 
-    auto get() -> T {
+    auto get() noexcept -> T {
         std::unique_lock<std::mutex> lock{m_mutex};
         m_put_cv.wait(lock, [&]{ return static_cast<bool>(m_data); });
         auto value = std::move(m_data).value();
@@ -40,7 +44,7 @@ public:
     }
   
     //
-    auto try_put(T const& value) -> bool {
+    auto try_put(T const& value) noexcept -> bool {
         bool result = false;
     
         {
@@ -55,7 +59,7 @@ public:
         return result;
     }
   
-    auto try_put(T&& value) -> bool {
+    auto try_put(T&& value) noexcept -> bool {
         bool result = false;
     
         {
@@ -70,7 +74,7 @@ public:
         return result;
     }
   
-    auto try_get() -> std::optional<T> {
+    auto try_get() noexcept -> std::optional<T> {
         std::optional<T> result;
     
         {      
@@ -278,6 +282,5 @@ auto main() -> int {
     test_2();
     test_3();
     std::cout << "DONE\n";
-    std::cin.get();
     return 0;
 }
