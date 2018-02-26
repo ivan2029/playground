@@ -104,6 +104,7 @@ private:
 #include <thread>
 #include <vector>
 #include <algorithm>
+#include <utility>
 #include <chrono>
 using namespace std::literals;
 
@@ -172,17 +173,23 @@ auto test_1() -> void {
 auto test_2() -> void {
     constexpr int const PRODUCER_COUNT = 10;
     constexpr int const PER_PRODUCER_COUNT = 100;
-
-    //
-    SyncVar<int> si;
-    std::vector<int> xs;
     
     //
-    auto producer_fn = [&]{
-        for(int i = 0; i != PER_PRODUCER_COUNT; ++ i) {
-            si.put(i);
-            //std::this_thread::sleep_for(10ms);
-        }
+    using ProducerId = int;
+    using Value = std::pair<ProducerId, int>;
+
+    //
+    SyncVar<Value> si;
+    std::vector<Value> xs;
+    
+    //
+    auto producer_fn = [&](int pid){
+        return [&, pid]{
+            for(int i = 0; i != PER_PRODUCER_COUNT; ++ i) {
+                si.put(std::make_pair(pid, i));
+                //std::this_thread::sleep_for(10ms);
+            }
+        };
     };
 
     auto consumer_fn = [&] {
@@ -199,7 +206,7 @@ auto test_2() -> void {
     //
     std::vector<std::thread> producers;
     for(int i = 0; i < PRODUCER_COUNT; ++ i) {
-        producers.emplace_back(producer_fn);
+        producers.emplace_back(producer_fn(i));
     }
     
     std::thread consumer{consumer_fn};
@@ -209,10 +216,10 @@ auto test_2() -> void {
     consumer.join();
     
     //
-    std::vector<int> expected;
-    for(int i = 0; i < PER_PRODUCER_COUNT; ++ i) {
-        for(int j = 0; j < PRODUCER_COUNT; ++ j) {
-            expected.push_back(i);
+    std::vector<Value> expected;
+    for(int pid = 0; pid < PRODUCER_COUNT; ++ pid) {
+        for(int i = 0; i < PER_PRODUCER_COUNT; ++ i) {
+            expected.push_back(std::make_pair(pid, i));
         }
     }
     
@@ -226,21 +233,27 @@ auto test_3() -> void {
     constexpr int const PER_PRODUCER_COUNT = 100;
 
     //
-    SyncVar<int> si;
-    std::vector<int> xs;
+    using ProducerId = int;
+    using Value = std::pair<ProducerId, int>;
     
     //
-    auto producer_fn = [&]{
-        int put{0};
-        while(put < PER_PRODUCER_COUNT) {
-            if(si.try_put(put)) {
-                ++ put;
+    SyncVar<Value> si;
+    std::vector<Value> xs;
+    
+    //
+    auto producer_fn = [&](int pid){
+        return [&, pid]{
+            int put{0};
+            while(put < PER_PRODUCER_COUNT) {
+                if(si.try_put(std::make_pair(pid, put))) {
+                    ++ put;
+                }
+                //std::this_thread::sleep_for(10ms);
             }
-            //std::this_thread::sleep_for(10ms);
-        }    
+        };
     };
 
-    auto consumer_fn = [&] {
+    auto consumer_fn = [&] {    
         int caught{0};
         while(caught < PER_PRODUCER_COUNT*PRODUCER_COUNT) {
             auto oi = si.try_get();
@@ -254,7 +267,7 @@ auto test_3() -> void {
     //
     std::vector<std::thread> producers;
     for(int i = 0; i < PRODUCER_COUNT; ++ i) {
-        producers.emplace_back(producer_fn);
+        producers.emplace_back(producer_fn(i));
     }
     
     std::thread consumer{consumer_fn};
@@ -264,15 +277,15 @@ auto test_3() -> void {
     consumer.join();
     
     //
-    std::vector<int> expected;
-    for(int i = 0; i < PER_PRODUCER_COUNT; ++ i) {
-        for(int j = 0; j < PRODUCER_COUNT; ++ j) {
-            expected.push_back(i);
+    std::vector<Value> expected;
+    for(int pid = 0; pid < PRODUCER_COUNT; ++ pid) {
+        for(int i = 0; i < PER_PRODUCER_COUNT; ++ i) {
+            expected.push_back(std::make_pair(pid, i));
         }
     }
     
     std::sort(xs.begin(), xs.end());
-    
+        
     assert(expected == xs);
 }
 
