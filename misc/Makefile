@@ -36,10 +36,10 @@ all: mkdirs executable
 executable: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	g++ -o $@ $(OBJECTS) $(LIBS)
+	$(CXX) -o $@ $(OBJECTS) $(LIBS)
 
 $(OBJECTS): objs/%.o: src/%.cpp 
-	g++ -c $< -o $@ $(CXXFLAGS) $(INCLUDES) $(DEPFLAGS)
+	$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDES) $(DEPFLAGS)
 
 mkdirs:
 	@mkdir -p objs
