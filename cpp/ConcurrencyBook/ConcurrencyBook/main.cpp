@@ -14,7 +14,12 @@ auto main() -> int {
         //are_atomics_lock_free();
         //spin_mutex();
         //memory_orders();
-        lock_based_queue();
+        lock_based_global_lock_queue_try_pop();
+        lock_based_global_lock_queue_pop();
+        lock_based_fine_grained_queue_try_pop();
+        lock_based_fine_grained_queue_pop();
+        //lock_based_global_lock_lookup_table();
+        //lock_based_fine_grained_lookup_table();
 
     }
     catch(std::exception const& e) {

@@ -41,4 +41,10 @@ auto managing_threads() -> void;
  auto memory_orders() -> void;
 
  // Chapter 6: Designing lock based concurrent data structures
- auto lock_based_queue() -> void;
+ auto lock_based_global_lock_queue_try_pop() -> void;
+ auto lock_based_global_lock_queue_pop() -> void;
+ auto lock_based_fine_grained_queue_try_pop() -> void;
+ auto lock_based_fine_grained_queue_pop() -> void;
+
+ auto lock_based_global_lock_lookup_table() -> void;
+ auto lock_based_fine_grained_lookup_table() -> void;

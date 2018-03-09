@@ -145,6 +145,7 @@
     <ClCompile Include="synchronizing_concurrent_ops.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="data_structures.hpp" />
     <ClInclude Include="declarations.hpp" />
     <ClInclude Include="std.hpp" />
   </ItemGroup>
