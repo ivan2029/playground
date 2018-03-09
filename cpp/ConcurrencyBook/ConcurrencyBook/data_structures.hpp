@@ -292,8 +292,19 @@ namespace threadsafe {
         }
 
         auto remove(Key const& key) -> bool {
+            bool value_removed{false};
             auto const bucket_head = find_bucket_head(key);
-            // TODO
+            {
+                std::lock_guard<std::mutex> lock{m_mutex};
+                auto const bucket_node = find_node(bucket_head, key);
+                if(*bucket_node != nullptr) {
+                    auto const node = *bucket_node;
+                    *bucket_node = node->next;
+                    delete node;
+                    value_removed = true;
+                }
+            }
+            return value_removed;
         }
 
         auto keys() -> std::vector<Key> {
