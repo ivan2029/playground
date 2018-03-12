@@ -46,5 +46,10 @@ auto managing_threads() -> void;
  auto lock_based_fine_grained_queue_try_pop() -> void;
  auto lock_based_fine_grained_queue_pop() -> void;
 
+ auto thread_safe_queue_stress_test_global_lock() -> void;
+ auto thread_safe_queue_stress_test_fine_grained() -> void;
+
  auto lock_based_global_lock_lookup_table() -> void;
  auto lock_based_fine_grained_lookup_table() -> void;
+
+ 

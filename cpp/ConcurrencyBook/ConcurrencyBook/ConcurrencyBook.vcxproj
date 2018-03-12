@@ -143,6 +143,7 @@
     <ClCompile Include="sleep_some.cpp" />
     <ClCompile Include="spin_mutex.cpp" />
     <ClCompile Include="synchronizing_concurrent_ops.cpp" />
+    <ClCompile Include="threadsafe_queue_stress_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data_structures.hpp" />

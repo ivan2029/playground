@@ -239,15 +239,85 @@ auto lock_based_fine_grained_queue_pop() -> void {
 //
 //
 //
+template<template<class, class> class LookupTable>
+auto test_lookup_table(bool const do_comparison) -> void {
+    using Key   = int;
+    using Value = std::string;
+    using Table = LookupTable<Key, Value>;
+    using StdTable = std::map<Key, Value>;
+
+    constexpr int const WORKER_COUNT = 10;
+    constexpr int const ITEMS_PER_WORKER = 1000000;
+
+    //
+    auto worker_fn = [=](Table& table, StdTable& produced_table, std::mutex& produced_table_mutex) {
+        return [&, ITEMS_PER_WORKER] {
+            std::random_device random_device_;
+            std::uniform_int_distribution<> dist{1, 100};
+
+            for(int i = 0; i < ITEMS_PER_WORKER; ++ i) {
+                auto const number = dist(random_device_);
+                if(i % 3 == 0) {
+                    table.remove(number);
+
+                    if(do_comparison) {
+                        std::unique_lock<std::mutex> lock{produced_table_mutex};
+                        produced_table.erase(number);
+                    }
+                } 
+                else {
+                    table.insert_or_update(number, std::to_string(number));
+
+                    if(do_comparison) {
+                        std::unique_lock<std::mutex> lock{produced_table_mutex};
+                        produced_table[number] = std::to_string(number);
+                    }
+                }
+            }
+        };
+    };
+
+    // tables
+    StdTable   produced_table;
+    std::mutex produced_table_mutex;
+
+    Table    table;
+
+    // start and join workers
+    std::vector<std::thread> workers;
+    for(int i{0}; i != WORKER_COUNT; ++ i) {
+        workers.emplace_back(worker_fn(table, produced_table, produced_table_mutex));
+    }
+
+    for(auto& w: workers) w.join();
+
+    // join all produced maps into one map
+    if(do_comparison) {
+        for(auto& kv: produced_table) {
+            auto opt = table.get(kv.first);
+            if(!opt) throw std::runtime_error("#2");
+            if(*opt != kv.second) throw std::runtime_error("#3");
+            //std::cout << std::setw(10) << kv.first << " -> " << std::setw(10) << kv.second << "\n";
+        }
+    }
+}
+
+constexpr const bool DO_COMPARISON = false;
+
 auto lock_based_global_lock_lookup_table() -> void {
-    threadsafe::LookupTableGlobalLock<int, std::string> lookup_table;
-
-
-    NOT_YET_IMPLEMENTED();
+    using namespace std::chrono;
+    auto const time = run_and_time([]{
+        test_lookup_table<threadsafe::LookupTableGlobalLock>(DO_COMPARISON);
+    });
+    std::cout << "lookup table, global lock, took: " << duration_cast<milliseconds>(time).count() << "ms\n";
 }
 
 auto lock_based_fine_grained_lookup_table() -> void {
-    NOT_YET_IMPLEMENTED();
+    using namespace std::chrono;
+    auto const time = run_and_time([]{
+        test_lookup_table<threadsafe::LookupTableFineGrained>(DO_COMPARISON);
+    });
+    std::cout << "lookup table, fine grained, took: " << duration_cast<milliseconds>(time).count() << "ms\n";
 }
 
 
