@@ -599,23 +599,23 @@ namespace threadsafe {
         }
 
         template<class P>
-        auto remove_if(P&& predicate) -> void {    
+        auto remove_if(P&& predicate) -> void {
             std::unique_lock<std::mutex> lock{m_head_mutex};
-            auto current = m_head;
 
-            if(current == nullptr) return;
+            auto current = &m_head;
 
-            while(auto const next = current->next) {
-                std::unique_lock<std::mutex> next_lock{next->mutex};
-                if(predicate(next->value)) {
-                    auto const old_next = next;
-                    current->next = next->next;
-                    next_lock.unlock();
+            while(*current) {
+                std::unique_lock<std::mutex> current_lock{(*current)->mutex};
+                if( predicate( (*current)->value ) ) {
+                    auto const old = *current;
+                    *current = old->next;
+                    current_lock.unlock();
+                    delete old;
                 }
                 else {
                     lock.unlock();
-                    current = next;
-                    lock = std::move(next_lock);
+                    lock = std::move(current_lock);
+                    current = &(*current)->next;
                 }
             }
         }

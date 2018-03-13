@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="atomic_lock_free_test.cpp" />
     <ClCompile Include="lock_based.cpp" />
+    <ClCompile Include="lock_free.cpp" />
     <ClCompile Include="managing_threads.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory_order.cpp" />
@@ -146,8 +147,9 @@
     <ClCompile Include="threadsafe_queue_stress_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="data_structures.hpp" />
+    <ClInclude Include="lock_based_data_structures.hpp" />
     <ClInclude Include="declarations.hpp" />
+    <ClInclude Include="lock_free_data_structures.hpp" />
     <ClInclude Include="std.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -3,22 +3,6 @@
 //
 //
 //
-#include "data_structures.hpp"
-
-template<class T>
-auto operator<< (std::ostream& out, std::optional<T> const& o) -> std::ostream& {
-    if(o) {
-        out << "Some(" << *o << ")";
-    }
-    else {
-        out << "None";
-    }
-    return out;
-}
-
-//
-//
-//
 auto main() -> int {
     std::cout << std::boolalpha;
     try {
@@ -41,8 +25,7 @@ auto main() -> int {
         //thread_safe_queue_stress_test_fine_grained();
         //lock_based_global_lock_lookup_table();
         //lock_based_fine_grained_lookup_table();
-        list_pushing_and_removing();
-
+        //list_pushing_and_removing();
     }
     catch(std::exception const& e) {
         std::cerr << "error: " << e.what() << "\n";

@@ -45,6 +45,9 @@
     <ClCompile Include="threadsafe_queue_stress_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lock_free.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="std.hpp">
@@ -53,7 +56,10 @@
     <ClInclude Include="declarations.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="data_structures.hpp">
+    <ClInclude Include="lock_based_data_structures.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lock_free_data_structures.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
