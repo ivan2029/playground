@@ -320,4 +320,46 @@ auto lock_based_fine_grained_lookup_table() -> void {
     std::cout << "lookup table, fine grained, took: " << duration_cast<milliseconds>(time).count() << "ms\n";
 }
 
+//
+//
+//
+auto list_pushing_and_removing() -> void {
+    constexpr int const WORKER_COUNT = 5;
+    constexpr int const ITEMS_PER_WORKER = 100;
 
+    //
+    auto worker_fn = [=](threadsafe::List<int>& list) {
+        return [&, ITEMS_PER_WORKER]{
+            std::random_device random_device_;
+            std::uniform_int_distribution<> dist{1, 100};
+
+            for(int i = 0; i < ITEMS_PER_WORKER; ++ i) {
+                auto const number = dist(random_device_);
+                if(i % 3 != 0) {
+                    list.push_front(number);
+                }
+                else {
+                    auto const predicate = [=](int x) { return x == number; };
+                    list.remove_if(predicate);
+                }
+            }
+        };
+    };
+
+    //
+    threadsafe::List<int> list;
+
+
+    //
+    std::vector<std::thread> workers;
+    for(int i = 0; i < WORKER_COUNT; ++ i) {
+        workers.emplace_back(worker_fn(list));
+    }
+
+    for(auto& w: workers) w.join();
+
+    //
+    list.for_each([](int x) {
+        std::cout << x << "\n";
+    });
+}

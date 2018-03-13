@@ -52,4 +52,5 @@ auto managing_threads() -> void;
  auto lock_based_global_lock_lookup_table() -> void;
  auto lock_based_fine_grained_lookup_table() -> void;
 
+ auto list_pushing_and_removing() -> void;
  

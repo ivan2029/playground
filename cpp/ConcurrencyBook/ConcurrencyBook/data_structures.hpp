@@ -242,7 +242,7 @@ namespace threadsafe {
 
     //
     // A simple lookup-table (hash-table) with global lock
-    // Node: this would be simpler if I just used std::vector, but what the hell...
+    // Note: this would be simpler if I just used std::vector, but what the hell...
     //
     template<class Key, class Value>
         // requires Regular<Key> && Ordered<Key>
@@ -391,8 +391,7 @@ namespace threadsafe {
     };
 
     //
-    // A simple lookup-table (hash-table) with global lock
-    // Node: this would be simpler if I just used std::vector, but what the hell...
+    // A simple lookup-table (hash-table) with one lock per bucket
     //
     template<class Key, class Value>
         // requires Regular<Key> && Ordered<Key>
@@ -545,5 +544,85 @@ namespace threadsafe {
         Bucket*      m_buckets;
     };
 
+    //
+    // Threadsafe list
+    //
+    template<class T>
+    class List {
+        struct Node {
+            T           value;
+            Node*       next{nullptr};
+            std::mutex  mutex;
+        };
+
+    public: // ctor, dtor, assign
+
+        List() = default;
+
+        List(List const& ) = delete;
+
+        List(List&& ) = delete;
+
+        ~List() {
+            while(m_head) {
+                auto const old_head = m_head;
+                m_head = m_head->next;
+                delete old_head;
+            }
+        }
+
+        List& operator= (List const& ) = delete;
+
+        List& operator= (List&& ) = delete;
+
+    public: // methods
+
+        template<class T1>
+        auto push_front(T1&& value) -> void {
+            std::unique_lock<std::mutex> head_lock{m_head_mutex};
+            auto const new_node = new Node{ {std::forward<T1>(value)}, m_head };
+            m_head = new_node;
+        }
+
+        template<class A>
+        auto for_each(A&& action) -> A {
+            std::unique_lock<std::mutex> curr_lock{m_head_mutex};
+            auto node = &m_head;
+            while(*node) {
+                std::unique_lock<std::mutex> node_lock{(*node)->mutex};
+                curr_lock.unlock();
+                curr_lock = std::move(node_lock);
+                action((*node)->value);
+                node = &(*node)->next;
+            }
+            return action;
+        }
+
+        template<class P>
+        auto remove_if(P&& predicate) -> void {    
+            std::unique_lock<std::mutex> lock{m_head_mutex};
+            auto current = m_head;
+
+            if(current == nullptr) return;
+
+            while(auto const next = current->next) {
+                std::unique_lock<std::mutex> next_lock{next->mutex};
+                if(predicate(next->value)) {
+                    auto const old_next = next;
+                    current->next = next->next;
+                    next_lock.unlock();
+                }
+                else {
+                    lock.unlock();
+                    current = next;
+                    lock = std::move(next_lock);
+                }
+            }
+        }
+        
+    private: // fields
+        Node*      m_head{nullptr};
+        std::mutex m_head_mutex;
+    };
 }
 

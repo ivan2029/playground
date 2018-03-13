@@ -39,8 +39,9 @@ auto main() -> int {
         //lock_based_fine_grained_queue_pop();
         //thread_safe_queue_stress_test_global_lock();
         //thread_safe_queue_stress_test_fine_grained();
-        lock_based_global_lock_lookup_table();
-        lock_based_fine_grained_lookup_table();
+        //lock_based_global_lock_lookup_table();
+        //lock_based_fine_grained_lookup_table();
+        list_pushing_and_removing();
 
     }
     catch(std::exception const& e) {
