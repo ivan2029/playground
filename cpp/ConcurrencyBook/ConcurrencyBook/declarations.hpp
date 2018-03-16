@@ -53,4 +53,7 @@ auto managing_threads() -> void;
  auto lock_based_fine_grained_lookup_table() -> void;
 
  auto list_pushing_and_removing() -> void;
+
+ // Chapter 7: Designing lock free concurrent data structures
+ auto lock_free_stack() -> void;
  

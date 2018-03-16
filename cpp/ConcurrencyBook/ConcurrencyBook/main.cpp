@@ -26,6 +26,7 @@ auto main() -> int {
         //lock_based_global_lock_lookup_table();
         //lock_based_fine_grained_lookup_table();
         //list_pushing_and_removing();
+        lock_free_stack();
     }
     catch(std::exception const& e) {
         std::cerr << "error: " << e.what() << "\n";
