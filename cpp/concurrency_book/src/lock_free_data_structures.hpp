@@ -40,6 +40,8 @@ namespace threadsafe {
             NOT_YET_IMPLEMENTED();
         }
 
+    private:
+
     };
 
 
