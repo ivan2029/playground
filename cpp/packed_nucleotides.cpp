@@ -1,6 +1,6 @@
 /*
   To encode 4 letters (in our case A, C, T, and G) we need only 2
-  bytes. Because A pairs only with T and C pairs only with G (and
+  bits. Because A pairs only with T and C pairs only with G (and
   vice versa), we pick following encoding for letters:
 
   A = 00
@@ -10,7 +10,7 @@
 
   ie, pairing letters are bitwise complements of each other.
 
-  In here, a algorithm for computing complementary chain of RNA is
+  In here, an algorithm for computing complementary chain of RNA is
   implemented twice, once using one char per letter, other using
   packed letters. Then their speeds are compared.
 
