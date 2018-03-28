@@ -75,6 +75,13 @@ private: // helpers
 
     auto vlk_get_swap_chain_images() -> void;
 
+    auto vlk_get_swap_chain_image_views() -> void;
+    auto vlk_destroy_swap_chain_image_views() -> void;
+
+    auto vlk_print_image_info() -> void;
+
+    auto vlk_create_pipeline() -> void;
+
 private: // fields
     //
     bool running{true};
@@ -85,19 +92,19 @@ private: // fields
     SDL_Window* window{nullptr};
 
     // Vulkan
-    bool                  vlk_validation_layer_enabled{false};
+    bool                      vlk_validation_layer_enabled{false};
 
-    VkInstance            vlk_instance;
-    VkSurfaceKHR          vlk_surface;
+    VkInstance                vlk_instance;
+    VkSurfaceKHR              vlk_surface;
 
-    VkPhysicalDevice      vlk_physical_device;
-    VkDevice              vlk_device;
-    VkQueue               vlk_graphics_queue;
-    VkQueue               vlk_present_queue;
+    VkPhysicalDevice          vlk_physical_device;
+    VkDevice                  vlk_device;
+    VkQueue                   vlk_graphics_queue;
+    VkQueue                   vlk_present_queue;
 
-    VkSwapchainKHR        vlk_swap_chain;
-    VkFormat              vlk_format;
-    VkExtent2D            vlk_extent;
-    std::vector<VkImage>  vlk_images;
-
+    VkSwapchainKHR            vlk_swap_chain;
+    VkFormat                  vlk_format;
+    VkExtent2D                vlk_extent;
+    std::vector<VkImage>      vlk_images;
+    std::vector<VkImageView>  vlk_image_views;
 };

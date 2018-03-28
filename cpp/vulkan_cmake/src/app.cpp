@@ -132,6 +132,11 @@ auto App::run() -> void {
 
     vlk_get_swap_chain_images();
 
+    vlk_get_swap_chain_image_views();
+    SCOPE_GUARD( vlk_destroy_swap_chain_image_views(); );
+
+    vlk_print_image_info();
+
     //
     main_loop();
 }
@@ -480,4 +485,54 @@ auto App::vlk_get_swap_chain_images() -> void {
     }
 
     vlk_images = std::move(images);
+}
+
+auto App::vlk_get_swap_chain_image_views() -> void {
+    std::vector<VkImageView> image_views;
+    image_views.reserve(vlk_images.size());
+
+    auto const get_image_view = [&](VkImage const image) -> VkImageView {
+        VkImageViewCreateInfo create_info {};
+        create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        create_info.image = image;
+        create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        create_info.format = vlk_format;
+        create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        create_info.subresourceRange.baseMipLevel = 0;
+        create_info.subresourceRange.levelCount = 1;
+        create_info.subresourceRange.baseArrayLayer = 0;
+        create_info.subresourceRange.layerCount = 1;
+
+        VkImageView view{};
+
+        auto const vk_result = vkCreateImageView(vlk_device, &create_info, nullptr, &view);
+        assert_eq(vk_result, VK_SUCCESS, "failed to create image view");
+
+        return view;
+    };
+
+    std::transform(vlk_images.begin(), vlk_images.end()
+                  , std::back_inserter(image_views)
+                  , get_image_view );
+
+    vlk_image_views = std::move(image_views);
+}
+
+auto App::vlk_destroy_swap_chain_image_views() -> void {
+    for(auto const view: vlk_image_views) {
+        vkDestroyImageView(vlk_device, view, nullptr);
+    }
+}
+
+auto App::vlk_print_image_info() -> void {
+    std::cout << "Image view count: " << vlk_image_views.size() << "\n";
+    std::cout << "\n";
+}
+
+auto App::vlk_create_pipeline() -> void {
+
 }
