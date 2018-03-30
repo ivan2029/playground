@@ -81,6 +81,10 @@ private: // helpers
     auto vlk_print_image_info() -> void;
 
     auto vlk_create_pipeline() -> void;
+    auto vlk_destroy_pipeline() -> void;
+
+    auto vlk_create_shader_modules() -> void;
+    auto vlk_destroy_shader_modules() -> void;
 
 private: // fields
     //
@@ -107,4 +111,7 @@ private: // fields
     VkExtent2D                vlk_extent;
     std::vector<VkImage>      vlk_images;
     std::vector<VkImageView>  vlk_image_views;
+
+    VkShaderModule            vlk_vertex_shader_module;
+    VkShaderModule            vlk_fragment_shader_module;
 };

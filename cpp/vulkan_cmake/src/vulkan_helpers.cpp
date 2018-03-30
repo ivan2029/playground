@@ -151,3 +151,18 @@ auto get_swap_chain_details(VkPhysicalDevice device, VkSurfaceKHR surface)
 
     return swap_chain_details;
 }
+
+auto create_shader_module(VkDevice device, const std::vector<char> &binary) -> VkShaderModule {
+    VkShaderModuleCreateInfo create_info {};
+    create_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    create_info.pNext    = nullptr;
+    create_info.flags    = 0;
+    create_info.codeSize = binary.size();
+    create_info.pCode    = reinterpret_cast<std::uint32_t const*>(binary.data());
+
+    VkShaderModule module_{VK_NULL_HANDLE};
+    auto const vk_result = vkCreateShaderModule(device, &create_info, nullptr, &module_);
+    assert_eq(vk_result, VK_SUCCESS, "failed to create shader module");
+
+    return module_;
+}

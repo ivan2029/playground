@@ -14,7 +14,7 @@ using namespace std::literals;
 #include "scoped_guard.hpp"
 #include "asserts.hpp"
 #include "vulkan_helpers.hpp"
-
+#include "read_file_contents.hpp"
 
 //
 //
@@ -136,6 +136,10 @@ auto App::run() -> void {
     SCOPE_GUARD( vlk_destroy_swap_chain_image_views(); );
 
     vlk_print_image_info();
+
+    //
+    vlk_create_pipeline();
+    SCOPE_GUARD( vlk_destroy_pipeline(); );
 
     //
     main_loop();
@@ -534,5 +538,64 @@ auto App::vlk_print_image_info() -> void {
 }
 
 auto App::vlk_create_pipeline() -> void {
+    //
+    vlk_create_shader_modules();
+
+    //
+    VkPipelineShaderStageCreateInfo vert_stage_create_info {};
+    vert_stage_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vert_stage_create_info.pNext = nullptr;
+    vert_stage_create_info.flags = 0;
+    vert_stage_create_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vert_stage_create_info.module = vlk_vertex_shader_module;
+    vert_stage_create_info.pName = "main";
+    vert_stage_create_info.pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo frag_stage_create_info {};
+    frag_stage_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    frag_stage_create_info.pNext = nullptr;
+    frag_stage_create_info.flags = 0;
+    frag_stage_create_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    frag_stage_create_info.module = vlk_fragment_shader_module;
+    frag_stage_create_info.pName = "main";
+    frag_stage_create_info.pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageCreateInfo stage_infos[] = {
+      vert_stage_create_info,
+      frag_stage_create_info
+    };
+
+    //
+    VkPipelineVertexInputStateCreateInfo vertex_input_info {};
+    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_info.pNext = nullptr;
+    vertex_input_info.flags = 0;
+    vertex_input_info.vertexBindingDescriptionCount   = 0;
+    vertex_input_info.pVertexBindingDescriptions      = nullptr;
+    vertex_input_info.vertexAttributeDescriptionCount = 0;
+    vertex_input_info.pVertexAttributeDescriptions    = nullptr;
+
+    //
 
 }
+
+auto App::vlk_destroy_pipeline() -> void {
+    vlk_destroy_shader_modules();
+}
+
+auto App::vlk_create_shader_modules() -> void {
+    auto const vert_spv = read_file_contents("shaders/vert.spv");
+    auto const frag_spv = read_file_contents("shaders/frag.spv");
+
+    auto const vert_mod = create_shader_module(vlk_device, vert_spv);
+    auto const frag_mod = create_shader_module(vlk_device, frag_spv);
+
+    vlk_vertex_shader_module   = vert_mod;
+    vlk_fragment_shader_module = frag_mod;
+}
+
+auto App::vlk_destroy_shader_modules() -> void {
+    vkDestroyShaderModule(vlk_device,   vlk_vertex_shader_module, nullptr);
+    vkDestroyShaderModule(vlk_device, vlk_fragment_shader_module, nullptr);
+}
+

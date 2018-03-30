@@ -16,6 +16,15 @@ file(GLOB vulkan_test_SRC
     "src/*.cpp"
 )
 
+#
+file( COPY        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/vert.spv"
+      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/shaders"
+)
+
+file( COPY        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/frag.spv"
+      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/shaders"
+)
+
 # executable
 add_executable(vulkan_test ${vulkan_test_SRC})
 

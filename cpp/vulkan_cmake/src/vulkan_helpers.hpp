@@ -34,3 +34,6 @@ struct SwapChainDetails {
 
 auto get_swap_chain_details(VkPhysicalDevice device, VkSurfaceKHR surface)
     -> SwapChainDetails;
+
+auto create_shader_module(VkDevice device, std::vector<char> const& binary)
+    -> VkShaderModule;
