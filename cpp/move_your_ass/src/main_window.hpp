@@ -13,11 +13,12 @@
 #include <QTimer>
 
 struct TimerSettings {
-    int  screen_portion{50}; // percentage
-    int  till_next_time{30}; // minutes
-    int  popup_remains_for_time{5}; // minutes
-    int  which_screen{-1};
-    qint64 start_time{0};
+    int      screen_portion{50}; // percentage
+    int      till_next_time{30}; // minutes
+    int      popup_remains_for_time{5}; // minutes
+    QString  message;
+    int      which_screen{-1};
+    qint64   start_time{0};
 };
 
 class MainWindow : public QWidget {
@@ -27,7 +28,10 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
 
 signals:
-    void show_popup(int screen, int screen_portion, int popup_remains_for_ms);
+    void show_popup( int screen
+                   , int screen_portion
+                   , int popup_remains_for_ms
+                   , QString message );
     void widget_closed();
 
 public slots:
@@ -39,6 +43,7 @@ private:
     auto setup_screen_portion() -> void;
     auto setup_till_next() -> void;
     auto setup_popup_remains_for() -> void;
+    auto setup_message() -> void;
     auto setup_which_screen() -> void;
     auto setup_activity_label() -> void;
     auto setup_start_button() -> void;
@@ -76,6 +81,9 @@ private:
     QLineEdit     m_popup_remains_for_input;
     QIntValidator m_popup_remains_for_validator;
     QLabel        m_popup_remains_for_postfix;
+
+    QLabel        m_message_label;
+    QLineEdit     m_message_input;
 
     QLabel        m_which_screen_label;
     QComboBox     m_which_screen_combo;

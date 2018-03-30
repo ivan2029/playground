@@ -38,7 +38,11 @@ Popup::Popup(QWidget *parent)
     m_timer.setSingleShot(true);
 }
 
-auto Popup::show_popup(int screen, int screen_portion, int popup_remains_for_ms) -> void {
+auto Popup::show_popup( int screen
+                      , int screen_portion
+                      , int popup_remains_for_ms
+                      , QString message
+) -> void {
     auto const ratio = screen_portion/100.0f;
 
     auto const screen_id   = screen != -1
@@ -57,6 +61,8 @@ auto Popup::show_popup(int screen, int screen_portion, int popup_remains_for_ms)
     auto font = m_label.font();
     font.setPixelSize(width/10);
     m_label.setFont(font);
+
+    m_label.setText(message);
 
     this->start_timer(popup_remains_for_ms);
 

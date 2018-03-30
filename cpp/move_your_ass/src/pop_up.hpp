@@ -15,7 +15,10 @@ signals:
     void popup_closed();
 
 public slots:
-    void show_popup(int screen, int screen_portion, int popup_remains_for_ms);
+    void show_popup( int screen
+                   , int screen_portion
+                   , int popup_remains_for_ms
+                   , QString message );
 
 private:
     //

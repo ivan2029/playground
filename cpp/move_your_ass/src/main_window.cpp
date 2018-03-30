@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->setup_screen_portion();
     this->setup_till_next();
     this->setup_popup_remains_for();
+    this->setup_message();
     this->setup_which_screen();
     this->setup_activity_label();
     this->setup_start_button();
@@ -66,6 +67,12 @@ auto MainWindow::setup_popup_remains_for() -> void {
     m_popup_remains_for_postfix.setText(tr("minutes"));
 }
 
+auto MainWindow::setup_message() -> void {
+    m_message_label.setText(tr("Message"));
+    m_message_input.setText(tr("Move your lazy ass!"));
+    m_message_input.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+}
+
 auto MainWindow::setup_which_screen() -> void {
     m_timer_settings.which_screen = QApplication::desktop()->primaryScreen();
     auto const screen_count = QApplication::desktop()->screenCount();
@@ -103,13 +110,16 @@ auto MainWindow::add_widgets_to_layout() -> void {
     m_layout.addWidget(   &m_popup_remains_for_input, 2, 1, Qt::AlignCenter);
     m_layout.addWidget( &m_popup_remains_for_postfix, 2, 2,   Qt::AlignLeft);
 
-    m_layout.addWidget(&m_which_screen_label, 3, 0, Qt::AlignLeft);
-    m_layout.addWidget(&m_which_screen_combo, 3, 1, Qt::AlignCenter);
-    m_layout.addWidget( &m_which_screen_test, 3, 2, Qt::AlignCenter);
+    m_layout.addWidget(&m_message_label, 3, 0, Qt::AlignLeft);
+    m_layout.addWidget(&m_message_input, 3, 1, 1, 2);
 
-    m_layout.addWidget(&m_activity_label, 4, 0, 1, 2, Qt::AlignCenter);
+    m_layout.addWidget(&m_which_screen_label, 4, 0, Qt::AlignLeft);
+    m_layout.addWidget(&m_which_screen_combo, 4, 1, Qt::AlignCenter);
+    m_layout.addWidget( &m_which_screen_test, 4, 2, Qt::AlignCenter);
 
-    m_layout.addWidget(&m_start_button, 4, 2, Qt::AlignCenter);
+    m_layout.addWidget(&m_activity_label, 5, 0, 1, 2, Qt::AlignCenter);
+
+    m_layout.addWidget(&m_start_button, 5, 2, Qt::AlignCenter);
 
     this->setLayout(&m_layout);
 }
@@ -135,9 +145,12 @@ auto MainWindow::start_countdown(bool) -> void
     m_timer_settings.screen_portion         = m_screen_portion_input.text().toInt();
     m_timer_settings.till_next_time         = m_till_next_input.text().toInt();
     m_timer_settings.popup_remains_for_time = m_popup_remains_for_input.text().toInt();
+    m_timer_settings.message                = m_message_input.text();
+
     if(QApplication::desktop()->screenCount() > 1) {
         m_timer_settings.which_screen = m_which_screen_combo.currentText().toInt();
     }
+
     m_timer_settings.start_time = QDateTime::currentMSecsSinceEpoch();
 
     m_activity_label.setText(tr("Counting down!"));
@@ -157,7 +170,8 @@ auto MainWindow::on_timeout() -> void {
         set_all_enabled(false);
         emit show_popup( m_timer_settings.which_screen
                        , m_timer_settings.screen_portion
-                       , mins_to_ms(m_timer_settings.popup_remains_for_time) );
+                       , mins_to_ms(m_timer_settings.popup_remains_for_time)
+                       , m_timer_settings.message );
     }
     else { // try later
         m_timer.start(1000);
@@ -167,12 +181,14 @@ auto MainWindow::on_timeout() -> void {
 auto MainWindow::on_which_screen_test_clicked() -> void {
     auto const screen_portion = m_screen_portion_input.text().toInt();
     auto const screen_id = m_which_screen_combo.currentText().toInt();
+    auto const message = m_message_input.text();
 
     m_activity_label.setText(tr("Showing screen"));
     set_all_enabled(false);
     emit show_popup( screen_id
                    , screen_portion
-                   , 5000 );
+                   , 5000
+                   , std::move(message) );
 }
 
 auto MainWindow::closeEvent(QCloseEvent *) -> void {

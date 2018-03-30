@@ -17,6 +17,10 @@ file(GLOB files_SRC
 )
 
 # executable
+
+# on win32
+#add_executable(move_your_ass WIN32 ${files_SRC})
+
 add_executable(move_your_ass ${files_SRC})
 
 target_link_libraries(move_your_ass Qt5::Widgets)
