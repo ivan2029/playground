@@ -46,9 +46,15 @@ private: // helpers
 
     auto process_events() -> void;
 
+    auto draw_frame() -> void;
+
     //
     auto init_window() -> void;
     auto deinit_window() -> void;
+
+    //
+    auto init_vulkan() -> void;
+    auto deinit_vulkan() -> void;
 
     //
     auto vlk_create_instance() -> void;
@@ -86,6 +92,26 @@ private: // helpers
     auto vlk_create_shader_modules() -> void;
     auto vlk_destroy_shader_modules() -> void;
 
+    auto vlk_create_pipeline_layout() -> void;
+    auto vlk_destroy_pipeline_layout() -> void;
+
+    auto vlk_create_render_pass() -> void;
+    auto vlk_destroy_render_pass() -> void;
+
+    auto vlk_create_pipeline_object() -> void;
+    auto vlk_destroy_pipeline_object() -> void;
+
+    auto vlk_create_framebuffers() -> void;
+    auto vlk_destroy_framebuffers() -> void;
+
+    auto vlk_create_command_pool() -> void;
+    auto vlk_destroy_command_pool() -> void;
+
+    auto vlk_create_command_buffers() -> void;
+
+    auto vlk_create_semaphores() -> void;
+    auto vlk_destroy_semaphores() -> void;
+
 private: // fields
     //
     bool running{true};
@@ -101,17 +127,38 @@ private: // fields
     VkInstance                vlk_instance;
     VkSurfaceKHR              vlk_surface;
 
+    // devices and queues
     VkPhysicalDevice          vlk_physical_device;
     VkDevice                  vlk_device;
     VkQueue                   vlk_graphics_queue;
     VkQueue                   vlk_present_queue;
 
+    // swapchain
     VkSwapchainKHR            vlk_swap_chain;
     VkFormat                  vlk_format;
     VkExtent2D                vlk_extent;
     std::vector<VkImage>      vlk_images;
     std::vector<VkImageView>  vlk_image_views;
 
+    // shader modules
     VkShaderModule            vlk_vertex_shader_module;
     VkShaderModule            vlk_fragment_shader_module;
+
+    // pipeline
+    VkPipelineLayout          vlk_pipeline_layout;
+    VkRenderPass              vlk_render_pass;
+    VkPipeline                vlk_pipeline;
+
+    //
+    std::vector<VkFramebuffer> vlk_framebuffers;
+
+    //
+    VkCommandPool                vlk_command_pool;
+    std::vector<VkCommandBuffer> vlk_command_buffers;
+
+    //
+    VkSemaphore vlk_image_available_sem;
+    VkSemaphore vlk_render_finished_sem;
+
+
 };
