@@ -55,5 +55,5 @@ auto managing_threads() -> void;
  auto list_pushing_and_removing() -> void;
 
  // Chapter 7: Designing lock free concurrent data structures
- auto lock_free_stack() -> void;
+ auto lock_free_bounded_spsc_queue() -> void;
  

@@ -1,81 +1,47 @@
 #include "declarations.hpp"
 #include "lock_free_data_structures.hpp"
 
-using ProducerId = int;
-using Item = int;
-using Value = std::pair<ProducerId, Item>;
+auto lock_free_bounded_spsc_queue() -> void {
+    using Item = int;
+    using Cont = threadsafe::Bounded_SPSC_Queue<Item>;
 
-inline auto producer_id (Value const& v) -> ProducerId { return v.first;  }
-inline auto item        (Value const& v) -> ProducerId { return v.second; }
-
-auto lock_free_stack() -> void {
-    //
-    using Stack = threadsafe::StackLockFree<Value>;
-    
-    //
-    constexpr const int PRODUCER_COUNT = 5;
-    constexpr const int ITEMS_PER_PRODUCER = 100;
+    std::size_t const ITEM_COUNT = 1000;
 
     //
-    auto producer_fn = [=](Stack& stack, ProducerId const pid) {
-        return [=, &stack] {
-            for(Item item_{0}; item_ != ITEMS_PER_PRODUCER; ++ item_) {
-                stack.push(Value{pid, item_});
-            }
-        };
-    };
-
-    // just one!
-    auto consumer_fn = [=](Stack& stack, std::vector<Value>& values) {
-        return [=, &stack, &values] {
-            for(;;) {
-                auto const value = stack.try_pop();
-                if(value) {
-                    if(producer_id(*value) == -1) return;
-                    values.push_back(*value);
+    auto const producer_fn = [=](Cont& cont) {
+        return [=, &cont] {
+            for(Item item{0}; item != ITEM_COUNT; ++ item) {
+                while( !cont.try_push(item) ){
+                    //std::this_thread::sleep_for(1ms);
                 }
             }
         };
     };
 
-    //
-    Stack stack;
-    std::vector<Value> values;
+    auto const consumer_fn = [=](Cont& cont, std::vector<Item>& out) {
+        return [=, &cont, &out] {
+            while(out.size() != ITEM_COUNT) {
+                auto oi = cont.try_pop();
+                if(oi) {
+                    out.push_back(*oi);
+                }
+                //std::this_thread::sleep_for(1ms);
+            }
+        };
+    };
 
     //
-    std::vector<std::thread> producers;
-    for(ProducerId pid{0}; pid != PRODUCER_COUNT; ++ pid) {
-        producers.emplace_back(producer_fn(stack, pid));
-    }
-    std::thread consumer{consumer_fn(stack, values)};
+    Cont              cont;
+    std::vector<Item> actual;
 
     //
-    for(auto& p: producers) p.join();
+    std::thread producer{producer_fn(cont)};
+    std::thread consumer{consumer_fn(cont, actual)};
 
-    stack.push(Value{-1, 0});
+    producer.join();
     consumer.join();
 
     //
-    auto const expected = [=] {
-        std::vector<Value> values;
-        for(ProducerId pid{0}; pid != PRODUCER_COUNT; ++ pid) {
-            for(Item item_{0}; item_ != ITEMS_PER_PRODUCER; ++ item_) {
-                values.push_back(Value{pid, item_});
-            }
-        }
-        return values;
-    }();
-
-    //std::sort(values.begin(), values.end());
-
-    //assert(expected == values);
-
-    //for(std::size_t i{0}; i != std::min(expected.size(), values.size()); ++ i) {
-    //    std::cout 
-    //        << std::setw(4) << producer_id(expected[i]) << " " << std::setw(4) << item(expected[i]) << " -> "
-    //        << std::setw(4) << producer_id(values[i])   << " " << std::setw(4) << item(values[i])   << "\n"
-    //        ;
-    //}
-
-    std::cout << expected.size() << " " << values.size() << "\n";
+    assert(actual.size() == ITEM_COUNT);
+    assert(std::is_sorted(actual.begin(), actual.end()));
 }
