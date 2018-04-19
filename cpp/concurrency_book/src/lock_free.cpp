@@ -1,5 +1,6 @@
 #include "declarations.hpp"
 #include "lock_free_data_structures.hpp"
+#include "std.hpp"
 
 auto lock_free_bounded_spsc_queue() -> void {
     using Item = int;

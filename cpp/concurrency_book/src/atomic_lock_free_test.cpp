@@ -1,4 +1,5 @@
 #include "declarations.hpp"
+#include "std.hpp"
 
 template<template<class> class F, class ... Ts>
 auto for_each_type() -> void {

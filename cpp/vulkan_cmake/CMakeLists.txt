@@ -10,6 +10,9 @@ include_directories(${SDL2_INCLUDE_DIRS})
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIRS})
 
+find_package(glm REQUIRED)
+include_directories(${GLM_INCLUDE_DIRS})
+
 # sources
 file(GLOB vulkan_test_SRC
     "src/*.hpp"
