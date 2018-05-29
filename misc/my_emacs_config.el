@@ -33,6 +33,9 @@
 ;; turn off splash screen
 (setq inhibit-splash-screen t)
 
+;; truncate long lines by default
+(setq-default truncate-lines t)
+
 ;; turn on transient mark mode
 (transient-mark-mode 1)
 
