@@ -1,11 +1,19 @@
-;; proxy
+;;
+;; proxy, if you need one
+;;
+
 ;;(setq url-proxy-services
 ;;   '(("no_proxy" . "^\\(localhost\\|10.*\\)")
 ;;     ("http" . "<write your proxy>:8080")
 ;;     ("https" . "<write your proxy>:8080")))
 
-;; packages
+;;
+;;  packages
+;;
+
+;; taken from https://melpa.org/#/getting-started
 (require 'package)
+
 (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
                     (not (gnutls-available-p))))
        (proto (if no-ssl "http" "https")))
@@ -17,24 +25,52 @@
     (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/")))))
 (package-initialize)
 
+(setq package-list 
+  '(sr-speedbar cmake-mode rust-mode haskell-mode json-mode json-reformat))
+
+; activate all the packages (in particular autoloads)
+(package-initialize)
+
+; fetch the list of packages available 
+(unless package-archive-contents
+  (package-refresh-contents))
+
+; install the missing packages
+(dolist (package package-list)
+  (unless (package-installed-p package)
+    (package-install package)))
+
+;;
+;; general editor options
+;;
+
 ;; tango-dark theme
 (custom-set-variables
- '(custom-enabled-themes (quote (wombat))))
-(custom-set-faces )
-
-;; see: https://fonts.google.com/specimen/Inconsolata?selection.family=Inconsolata
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes (quote (wombat)))
+ '(package-selected-packages
+   (quote
+    (json-mode haskell-mode rust-mode cmake-mode sr-speedbar)))
+ '(show-paren-mode t)
+ '(tool-bar-mode nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Inconsolata" :foundry "PfEd" :slant normal :weight normal :height 143 :width normal)))))
+ '(default ((t (:family "Consolas" :foundry "outline" :slant normal :weight normal :height 120 :width normal)))))
 
 ;; turn off splash screen
 (setq inhibit-splash-screen t)
 
 ;; truncate long lines by default
 (setq-default truncate-lines t)
+
+;; spaces instead of tabs
+(setq-default indent-tabs-mode nil)
 
 ;; turn on transient mark mode
 (transient-mark-mode 1)
@@ -61,6 +97,21 @@
 (global-set-key [C-wheel-up]   'text-scale-increase)
 (global-set-key [C-wheel-down] 'text-scale-decrease)
 
+;;
+;; org-mode options
+;;
+
+;; org-mode settings
+(setq org-src-fontify-natively t)
+
+;; org-mode TODO states
+(setq org-todo-keywords
+    '((sequence "TODO" "BLOCKED" "|" "DOING" "DONE")))
+
+;;
+;; cc-mode options
+;;
+
 ;; turn off c++-mode's automatic identing 
 (setq-default c-basic-offset 2
               tab-width 2 )
@@ -68,16 +119,7 @@
 (add-to-list 'c-mode-common-hook
              (lambda () (setq c-syntactic-indentation nil)))
 
-
-;; org-mode settings
-(setq org-src-fontify-natively t)
-
-;; recompile on f7
-;; this assumes Makefile is in parent directory to where source files are located (see my 'generic' Makefile for details)
-(setq compile-command "make -C ..")
-(define-key global-map [f7] 'recompile)
-
-;; my c++-mode options (taken from stlab.cc/legacy/emacs-questions.html)
+;; taken from stlab.cc/legacy/emacs-questions.html
 (defun my-c-mode-common-hook ()
   (setq tab-width 2)
   ;; don't treat _ as word delimiter
@@ -88,7 +130,7 @@
   (c-toggle-auto-hungry-state -1)
   (c-toggle-auto-state -1)
   (setq c-basic-offset 2)
-	(setq c-syntactic-indentation nil)
+  (setq c-syntactic-indentation nil)
   )
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
