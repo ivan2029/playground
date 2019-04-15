@@ -53,7 +53,12 @@
  '(custom-enabled-themes (quote (wombat)))
  '(package-selected-packages
    (quote
-    (json-mode haskell-mode rust-mode cmake-mode sr-speedbar)))
+    (json-mode 
+     haskell-mode 
+     rust-mode 
+     cmake-mode 
+     web-mode
+     sr-speedbar)))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
