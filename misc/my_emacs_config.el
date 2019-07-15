@@ -11,22 +11,28 @@
 ;;  packages
 ;;
 
-;; taken from https://melpa.org/#/getting-started
+;;
 (require 'package)
 
-(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-                    (not (gnutls-available-p))))
-       (proto (if no-ssl "http" "https")))
-  ;; Comment/uncomment these two lines to enable/disable MELPA and MELPA Stable as desired
-  (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
-  ;;(add-to-list 'package-archives (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
-  (when (< emacs-major-version 24)
-    ;; For important compatibility libraries like cl-lib
-    (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/")))))
-(package-initialize)
+; list the repositories containing them
+(setq package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("elpa" . "http://tromey.com/elpa/")
+                         ("gnu" . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "http://marmalade-repo.org/packages/")))
 
-(setq package-list 
-  '(sr-speedbar cmake-mode rust-mode haskell-mode json-mode json-reformat))
+(setq package-list '(sr-speedbar 
+		     treemacs
+		     ;;
+		     cmake-mode
+		     ;;
+		     go-mode
+		     rust-mode 
+		     haskell-mode
+		     ;;
+		     json-mode 
+		     json-reformat
+		     ;;
+		     web-mode ))
 
 ; activate all the packages (in particular autoloads)
 (package-initialize)
@@ -44,29 +50,8 @@
 ;; general editor options
 ;;
 
-;; tango-dark theme
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-enabled-themes (quote (wombat)))
- '(package-selected-packages
-   (quote
-    (json-mode 
-     haskell-mode 
-     rust-mode 
-     cmake-mode 
-     web-mode
-     sr-speedbar)))
- '(show-paren-mode t)
- '(tool-bar-mode nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:family "Consolas" :foundry "outline" :slant normal :weight normal :height 120 :width normal)))))
+;; theme
+(custom-set-variables '(custom-enabled-themes (quote (wombat))))
 
 ;; turn off splash screen
 (setq inhibit-splash-screen t)
@@ -103,30 +88,17 @@
 (global-set-key [C-wheel-down] 'text-scale-decrease)
 
 ;;
-;; org-mode options
+;; org-mode 
 ;;
 
-;; org-mode settings
+;; enable syntax highlighting
 (setq org-src-fontify-natively t)
-
-;; org-mode TODO states
-(setq org-todo-keywords
-    '((sequence "TODO" "BLOCKED" "|" "DOING" "DONE")))
 
 ;;
 ;; cc-mode options
 ;;
 
-;; turn off c++-mode's automatic identing 
-(setq-default c-basic-offset 2
-              tab-width 2 )
-(require 'cc-mode)
-(add-to-list 'c-mode-common-hook
-             (lambda () (setq c-syntactic-indentation nil)))
-
-;; taken from stlab.cc/legacy/emacs-questions.html
 (defun my-c-mode-common-hook ()
-  (setq tab-width 2)
   ;; don't treat _ as word delimiter
   (modify-syntax-entry ?_ "w")
   ;; this will make sure spaces are used instead of tabs
@@ -134,7 +106,10 @@
   ;; we don't like auto-newline and hungry-delete
   (c-toggle-auto-hungry-state -1)
   (c-toggle-auto-state -1)
-  (setq c-basic-offset 2)
+  ;; spaces instead of tabs and tab width is 4
+  (setq tab-width 4)
+  (setq c-basic-offset 4)
+  ;; please no automatic indentation
   (setq c-syntactic-indentation nil)
   )
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
