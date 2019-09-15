@@ -25,6 +25,9 @@
 		     ;;
 		     cmake-mode
 		     ;;
+		     lsp-mode
+		     company-lsp
+		     ;;
 		     go-mode
 		     rust-mode 
 		     haskell-mode
@@ -114,3 +117,13 @@
   )
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
+;;
+;;
+;;
+(require 'lsp-mode)
+(add-hook 'rust-mode-hook #'lsp)
+
+(require 'company-lsp)
+(push 'company-lsp company-backends)
+
+(setq lsp-enable-snippet nil)
