@@ -16,9 +16,10 @@
 
 ; list the repositories containing them
 (setq package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
-                         ("elpa" . "http://tromey.com/elpa/")
-                         ("gnu" . "http://elpa.gnu.org/packages/")
-                         ("marmalade" . "http://marmalade-repo.org/packages/")))
+                         ;;("elpa" . "http://tromey.com/elpa/")
+                         ;;("gnu" . "http://elpa.gnu.org/packages/")
+                         ;;("marmalade" . "http://marmalade-repo.org/packages/")
+			 ))
 
 (setq package-list '(sr-speedbar 
 		     treemacs
@@ -116,6 +117,7 @@
   (setq c-syntactic-indentation nil)
   )
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 ;;
 ;;
